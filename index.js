@@ -1,6 +1,7 @@
 // -- utilisation du serveur web Express
 const express = require("express");
 const app = express();
+app.use(express.json())
 // -- connexion à la BD si besoin
 // -- utilisation du router pour la gestion de sportifs
 const { routerBooks } = require("./app/router/routerBooks");

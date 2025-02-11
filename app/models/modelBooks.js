@@ -13,11 +13,25 @@ const listeLivre = async () => {
 }
 
 const livre = async (id) => {
-    const query = {
-        "selector" : {"_id":id},
-        "fields": ["auteur","date_de_sortie","editeur","titre"],
-    }
-    return await dbLivres.find(query)
+    return await dbLivres.get(id)
 }
 
-module.exports ={listeLivre , livre}
+const deleteLivre = async (id) => {
+    const livre = await dbLivres.get(id)
+    const rev = livre._rev
+    return await dbLivres.destroy(id,rev)
+}
+const updateLivre = async (id,newData) => {
+    const livre = await dbLivres.get(id)
+    const rev = livre._rev
+
+    const livreUpdate = {...livre,...newData,_rev:rev}
+    return await dbLivres.insert(livreUpdate)
+}
+const addLivre = async (newData) => {
+    return await dbLivres.insert(newData)
+}
+
+
+
+module.exports ={listeLivre , livre , deleteLivre , updateLivre , addLivre }
