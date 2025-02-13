@@ -18,36 +18,50 @@ const listeLivre = async () => {
 };
 
 
-const livre = async (id) => {
+const livre = async (isbn) => {
     try {
-        const result = await dbLivres.get(id);
-        return result;
+        const result = await dbLivres.find({ selector: { isbn: isbn } });
+        if (result.docs.length === 0) {
+            throw new Error("Livre non trouvé");
+        }
+        return result.docs;  
     } catch (error) {
         throw new Error("Livre non trouvé");
     }
 };
 
 
-const deleteLivre = async (id) => {
+
+const deleteLivre = async (isbn) => {
     try {
-        const livre = await dbLivres.get(id);
-        return await dbLivres.destroy(id, livre._rev);
+        const result = await dbLivres.find({ selector: { isbn: isbn } });
+        if (result.docs.length === 0) {
+            throw new Error("Livre non trouvé");
+        }
+        const livre = result.docs;
+        return await dbLivres.destroy(livre._id, livre._rev);
     } catch (error) {
-        throw new Error("Impossible de supprimer le livre (ID invalide ?)");
+        throw new Error("Impossible de supprimer le livre (ISBN invalide ?)");
     }
 };
 
 
-const updateLivre = async (id, newData) => {
+
+const updateLivre = async (isbn, newData) => {
     try {
-        const livre = await dbLivres.get(id);
-        const updatedLivre = { ...livre, ...newData, _rev: livre._rev };        
+        const result = await dbLivres.find({ selector: { isbn: isbn } });
+        if (result.docs.length === 0) {
+            throw new Error("Livre non trouvé");
+        }
+        const livre = result.docs;
+        const updatedLivre = { ...livre, ...newData, _rev: livre._rev };
         delete updatedLivre._id;
         return await dbLivres.insert(updatedLivre);
     } catch (error) {
         throw new Error("Erreur lors de la mise à jour du livre");
     }
 };
+
 
 
 const addLivre = async (newData) => {

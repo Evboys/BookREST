@@ -14,6 +14,9 @@ const schema = Joi.object({
     date_de_sortie: Joi.string()
         .pattern(/^\d{4}-\d{2}-\d{2}$/)
         .required(),
+    isbn: Joi.string()
+        .min(1)
+        .required(),
     
 })
 
@@ -21,7 +24,7 @@ const schema = Joi.object({
 const liste = async (req, res) => {
     try {
         const listeLivre = await modelBooks.listeLivre();
-        res.status(200).json({ success: true, data: listeLivre.docs });
+        res.status(200).json({ success: true, data: listeLivre });
     } catch (error) {
         res.status(500).json({ success: false, message: "Erreur lors de la récupération des livres", error });
     }
@@ -29,44 +32,46 @@ const liste = async (req, res) => {
 
 const livre = async (req, res) => {
     try {
-        const id = req.params.id;
-        const result = await modelBooks.livre(id)
+        const isbn = req.params.isbn; 
+        const result = await modelBooks.livre(isbn);  
         if (!result) {
-            return res.status(404).json({ success: false, message: "Livre non trouvé" })
+            return res.status(404).json({ success: false, message: "Livre non trouvé" });
         }
-        res.status(200).json({ success: true, data: result })
+        res.status(200).json({ success: true, data: result });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la récupération du livre", error })
+        res.status(500).json({ success: false, message: "Erreur lors de la récupération du livre", error });
     }
 };
+
 
 const deleteLivre = async (req, res) => {
     try {
-        const id = req.params.id;
-        await modelBooks.deleteLivre(id)
-        res.status(200).json({ success: true, message: "Livre supprimé avec succès" })
+        const isbn = req.params.isbn;  
+        await modelBooks.deleteLivre(isbn);  
+        res.status(200).json({ success: true, message: "Livre supprimé avec succès" });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la suppression", error })
+        res.status(500).json({ success: false, message: "Erreur lors de la suppression", error });
     }
 };
+
 
 const updateLivre = async (req, res) => {
     try {
-        const id = req.params.id
-        const newData = req.body
+        const isbn = req.params.isbn;  
+        const newData = req.body;
 
-        
-        const { error } = schema.validate(newData)
+        const { error } = schema.validate(newData);
         if (error) {
-            return res.status(400).json({ success: false, message: "Données invalides", error: error.message })
+            return res.status(400).json({ success: false, message: "Données invalides", error: error.message });
         }
 
-        const result = await modelBooks.updateLivre(id, newData);
-        res.status(200).json({ success: true, message: "Livre mis à jour avec succès", data: result })
+        const result = await modelBooks.updateLivre(isbn, newData); 
+        res.status(200).json({ success: true, message: "Livre mis à jour avec succès", data: result });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la mise à jour", error })
+        res.status(500).json({ success: false, message: "Erreur lors de la mise à jour", error });
     }
 };
+
 
 const addLivre = async (req, res) => {
     try{

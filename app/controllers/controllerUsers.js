@@ -70,12 +70,43 @@ const addUser = async (req, res) => {
 
 const deleteUser = async (req, res) => {
     try {
-        const id = req.params.id;
-        await modelUsers.deleteUser(id)
-        res.status(200).json({ success: true, message: "Utilisateur supprimé avec succès" })
+        const username = req.params.username;
+        const user = await modelUsers.userExisting(username);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+        const resultat = await modelUsers.deleteUser(username);
+        if (!resultat || !resultat.ok) {
+            return res.status(400).json({ success: false, message: "Erreur lors de la suppression de l'utilisateur" });
+        }
+        res.status(200).json({ success: true, message: "Utilisateur supprimé avec succès" });
     } catch (error) {
-        res.status(500).json({ success: false, message: "Erreur lors de la suppression", error })
+        res.status(500).json({ success: false, message: "Erreur interne", error: error.message });
     }
 }
 
-module.exports = { user, addUser, deleteUser };
+const updateUser = async (req, res) => {
+    try {
+        const username = req.params.username;
+        const newData = req.body;
+        const user = await modelUsers.userExisting(username);
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+        }
+        const currentAdminStatus = user.admin;
+        if (newData.password) {
+            const hashedPassword = await bcrypt.hash(newData.password, saltRounds);
+            newData.password = hashedPassword;  
+        }
+        newData.admin = currentAdminStatus;
+        const resultat = await modelUsers.updateUser(username, newData);
+        if (!resultat || !resultat.ok) {
+            return res.status(400).json({ success: false, message: "Erreur lors de la mise à jour de l'utilisateur" });
+        }
+        res.status(200).json({ success: true, message: "Utilisateur mis à jour avec succès" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Erreur interne", error: error.message });
+    }
+};
+
+module.exports = { user, addUser, deleteUser, updateUser };
